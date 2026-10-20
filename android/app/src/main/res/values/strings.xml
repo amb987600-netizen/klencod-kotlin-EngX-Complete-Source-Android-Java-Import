@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">EngX</string>
+    <string name="title_activity_main">EngX</string>
+    <string name="package_name">com.engx.app</string>
+    <string name="custom_url_scheme">com.engx.app</string>
+    <string name="widget_description">لوحة صيانة EngX</string>
+</resources>

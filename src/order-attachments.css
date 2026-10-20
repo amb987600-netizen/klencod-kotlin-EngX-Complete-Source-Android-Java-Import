@@ -1,0 +1,11 @@
+.order-attachments .attachment-help { margin: 0 0 10px; color: var(--muted, #667085); }
+.pending-attachments { display: grid; gap: 8px; margin-top: 10px; }
+.attachment-item { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 4px 6px 4px 0; max-width: 100%; }
+.attachment-item.saved { padding: 6px; border: 1px solid var(--border, #d0d5dd); border-radius: 8px; background: var(--surface, #fff); }
+.attachment-item .secondary { max-width: min(32rem, 70vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.attachment-remove { color: #b42318; }
+.attachment-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border, #d0d5dd); }
+.attachment-file { display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 6px; background: var(--surface-2, #f2f4f7); font-weight: 700; }
+.attachment-error { color: #b42318; flex-basis: 100%; }
+
+.attachment-preview-backdrop{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);display:grid;place-items:center;padding:16px}.attachment-preview{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:95vw;max-height:95dvh}.attachment-preview img{max-width:90vw;max-height:75dvh;object-fit:contain}.dark .attachment-item.saved{background:#192c35}

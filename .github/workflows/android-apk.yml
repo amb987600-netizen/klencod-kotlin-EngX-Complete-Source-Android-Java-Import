@@ -1,0 +1,63 @@
+name: Build EngX Android APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Locate Capacitor project (not Flutter)
+        id: project
+        shell: bash
+        run: |
+          if [ -f package.json ] && [ -f capacitor.config.ts ] && [ -f android/settings.gradle ]; then
+            root='.'
+          elif [ -f EngX/package.json ] && [ -f EngX/capacitor.config.ts ] && [ -f EngX/android/settings.gradle ]; then
+            root='EngX'
+          else
+            echo '::error::EngX project root not found. Extract the ZIP contents, including hidden .github files; do not upload the ZIP itself or select a Flutter template.'
+            exit 1
+          fi
+          echo "root=$root" >> "$GITHUB_OUTPUT"
+          echo "EngX Capacitor project: $root; Flutter must not be used."
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: ${{ steps.project.outputs.root }}/package-lock.json
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Android platform
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Install web dependencies
+        working-directory: ${{ steps.project.outputs.root }}
+        run: npm ci
+      - name: Check Android prerequisites
+        working-directory: ${{ steps.project.outputs.root }}
+        run: npm run android:doctor
+      - name: Run regression tests
+        working-directory: ${{ steps.project.outputs.root }}
+        run: npm test
+      - name: Build web app, sync Capacitor and assemble debug APK
+        working-directory: ${{ steps.project.outputs.root }}
+        run: npm run android:apk
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: EngX-debug-APK
+          path: ${{ steps.project.outputs.root }}/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,10 @@
+import { describe, expect, it } from "vitest";
+import { buildAlerts } from "../src/notifications";
+const settings: any = { activeDomain: "medical", user: { id: "me" }, workspace: { id: "w" }, notificationPreferences: { daysBefore: 7 } };
+const row = (id: string, type: any, domain = "medical", data: any = {}) => ({ id, type, domain, data, deleted_at: null, updated_at: "2026-01-01T00:00:00.000Z" });
+describe("smart notifications", () => {
+  it("is deterministic and generic by default", () => { const records = [row("p", "plan", "medical", { next_due: "2026-01-05", device_id: "d" })]; const a = buildAlerts(records, settings, "2026-01-01T00:00:00.000Z"); expect(a[0].id).toBe("schedule:maintenance:p:2026-01-05T00:00:00.000Z"); expect(a[0].body).not.toContain("d"); expect(buildAlerts(records, settings, "2026-01-01T00:00:00.000Z")[0].id).toBe(a[0].id); });
+  it("limits records to the active domain and ignores deleted rows", () => { const rows = [row("a", "plan", "mobiles", { next_due: "2026-01-02" }), row("b", "plan", "medical", { next_due: "2026-01-02" }), { ...row("c", "plan", "medical", { next_due: "2026-01-02" }), deleted_at: "2026-01-01" }]; expect(buildAlerts(rows, settings, "2026-01-01")).toHaveLength(1); });
+  it("keeps only the latest calibration for a device", () => { const old = row("old", "calibration", "medical", { device_id: "d", performed_at: "2025-01-01", next_due: "2026-01-02" }); const latest = row("new", "calibration", "medical", { device_id: "d", performed_at: "2025-06-01", next_due: "2026-01-02" }); expect(buildAlerts([old, latest], settings, "2026-01-01")).toHaveLength(1); expect(buildAlerts([old, latest], settings, "2026-01-01")[0].recordId).toBe("new"); });
+  it("counts only supplied unread messages from other senders", () => { const messages: any[] = [{ id: "1", sender_id: "me", domain: "medical" }, { id: "2", sender_id: "other", domain: "medical" }, { id: "3", sender_id: "other", domain: "medical", read: true }]; expect(buildAlerts([], settings, "2026-01-01", messages)).toHaveLength(1); expect(buildAlerts([], settings, "2026-01-01", messages)[0].body).toContain("غير مقروءة"); });
+});

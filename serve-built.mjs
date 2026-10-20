@@ -1,0 +1,10 @@
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root=path.join(path.dirname(fileURLToPath(import.meta.url)),'dist');
+const host=process.env.HOST||'127.0.0.1';
+const port=Number(process.env.PORT||5173);
+const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.woff2':'font/woff2'};
+if(!fs.existsSync(path.join(root,'index.html')))throw Error('dist missing: run npm ci && npm run build');
+http.createServer((req,res)=>{try{const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);let file=path.resolve(root,'.'+pathname);if(file!==root&&!file.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}if(!fs.existsSync(file)||fs.statSync(file).isDirectory())file=path.join(root,'index.html');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('Cache-Control',path.basename(file)==='sw.js'||file.endsWith('.html')?'no-cache':'public, max-age=3600');res.setHeader('Content-Type',mime[path.extname(file)]||'application/octet-stream');if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405);res.end();return;}if(req.method==='HEAD')res.end();else fs.createReadStream(file).pipe(res);}catch{res.writeHead(400);res.end('Bad request');}}).listen(port,host,()=>console.log(`EngX: http://${host}:${port}\nKeep this window open. Ctrl+C stops the app.`));
